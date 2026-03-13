@@ -43,6 +43,10 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/potholes', potholeRoutes);
 
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "API is running" });
+});
+
 app.use(notFound);
 app.use(errorHandler);
 
@@ -56,10 +60,6 @@ const connectDB = async () => {
     process.exit(1);
   }
 };
-
-app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "ok", message: "API is running" });
-});
 
 app.listen(PORT, async () => {
   await connectDB();
