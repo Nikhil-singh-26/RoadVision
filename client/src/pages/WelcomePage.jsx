@@ -127,6 +127,64 @@ const WelcomePage = () => {
               </div>
             </div>
 
+            {/* Impact Statistics Carousel Section */}
+            <div className="w-full mb-20">
+              <div className="flex flex-col mb-8 text-center md:text-left px-4">
+                 <h3 className="text-xs md:text-sm font-black text-[#1a237e] uppercase tracking-[0.3em] mb-2">Pothole Impact Report</h3>
+                 <h2 className="text-2xl md:text-4xl font-black text-[#1a237e] uppercase tracking-tight">Impact of Potholes on Road Safety in India</h2>
+              </div>
+              
+              <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-hidden h-[350px] md:h-[400px]">
+                {/* Background with Overlay */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center bg-fixed"
+                  style={{ backgroundImage: 'url("/accident.jpeg")' }}
+                >
+                  <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"></div>
+                </div>
+
+                {/* Marquee Container */}
+                <div className="relative h-full flex items-center">
+                  <motion.div 
+                    className="flex whitespace-nowrap"
+                    animate={{ x: [0, "-50%"] }}
+                    transition={{ 
+                      duration: 40, 
+                      repeat: Infinity, 
+                      ease: "linear" 
+                    }}
+                  >
+                    {/* Double the cards for seamless loop */}
+                    {[...Array(2)].map((_, i) => (
+                      <div key={i} className="flex">
+                        {[
+                          { title: '9,400+ Deaths Due to Potholes', text: 'According to the Ministry of Road Transport and Highways, potholes caused more than 9,400 deaths in India between 2020 and 2024.' },
+                          { title: '23,000+ Road Accidents', text: 'More than 23,000 accidents occurred due to potholes on Indian roads during the same period.' },
+                          { title: '20,000+ Injuries', text: 'Nearly 20,000 people were injured due to pothole-related accidents.' },
+                          { title: '53% Increase in Pothole Accidents', text: 'Pothole-related accidents have increased by 53% in the last five years, highlighting the urgent need for better road monitoring systems.' },
+                          { title: 'Human Impact Message', text: 'Each death affects multiple family members, meaning tens of thousands of families suffer due to poor road conditions.' },
+                          { title: 'Solution Statement', text: '"Our AI-based pothole detection system identifies dangerous road defects early and automatically notifies authorities, helping prevent accidents and save lives."' },
+                        ].map((stat, index) => (
+                          <div 
+                            key={index} 
+                            className="w-[300px] md:w-[450px] mx-4 md:mx-6 bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-[2rem] flex flex-col justify-center whitespace-normal group hover:bg-white/20 transition-all cursor-default scale-95 hover:scale-100"
+                          >
+                             <div className="w-12 h-1 bg-[#ea580c] mb-4 rounded-full"></div>
+                             <h4 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight mb-4 leading-tight group-hover:text-orange-400 transition-colors">
+                               {stat.title}
+                             </h4>
+                             <p className="text-sm md:text-base text-gray-200 font-medium leading-relaxed italic border-l-2 border-white/30 pl-4">
+                               {stat.text}
+                             </p>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </motion.div>
+                </div>
+              </div>
+            </div>
+
             {/* Features Section */}
             <div className="mb-20">
               <div className="flex items-center justify-between mb-10 border-b border-gray-200 pb-4">
