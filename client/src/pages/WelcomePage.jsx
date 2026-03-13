@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import { 
   BrainCircuit, 
   MapPin, 
@@ -12,6 +13,7 @@ import {
 
 const WelcomePage = () => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
   const features = [
     { title: 'AI Pothole Detection', icon: <BrainCircuit className="text-blue-600" size={32} /> },
@@ -108,10 +110,10 @@ const WelcomePage = () => {
               
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button 
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate(user ? '/dashboard' : '/login')}
                   className="w-full sm:w-auto px-10 py-5 bg-[#1a237e] text-white rounded-2xl font-black text-lg uppercase tracking-widest hover:bg-[#283593] shadow-2xl shadow-blue-900/40 transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
                 >
-                  Enter Monitoring Dashboard
+                  Monitoring Dashboard
                   <span className="ml-3 font-serif">➔</span>
                 </button>
                 <button 

@@ -20,7 +20,7 @@ const Login = () => {
     try {
       if (login) {
         await login(email, password);
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid credentials or portal sync failure.');

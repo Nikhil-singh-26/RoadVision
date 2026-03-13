@@ -12,6 +12,21 @@ import ReportPage from './pages/ReportPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 
 const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useContext(AuthContext);
+  
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-[#f8faff]">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#1a237e] border-t-transparent mb-4"></div>
+        <p className="text-sm font-black text-[#1a237e] tracking-widest uppercase italic">Authenticating...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
   return children;
 };
 
@@ -39,36 +54,44 @@ const AppRoots = () => {
         <Route 
           path="/dashboard" 
           element={
-            <Layout>
-              <Dashboard />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         
         <Route 
           path="/map" 
           element={
-            <Layout>
-              <MapPage />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <MapPage />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
 
         <Route 
           path="/report" 
           element={
-            <Layout>
-              <ReportPage />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <ReportPage />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
 
         <Route 
           path="/analytics" 
           element={
-            <Layout>
-              <AnalyticsPage />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <AnalyticsPage />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
 

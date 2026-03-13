@@ -34,7 +34,7 @@ const Register = () => {
     try {
       if (register) {
         await register(formData.name, formData.email, formData.password, formData.role);
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Official registration failed.');
