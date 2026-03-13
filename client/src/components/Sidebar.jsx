@@ -4,7 +4,6 @@ import {
   Map as MapIcon, 
   FileText, 
   BarChart3, 
-  Settings, 
   LogOut,
   ChevronRight,
   X
@@ -22,7 +21,6 @@ const Sidebar = ({ onClose }) => {
     { title: 'Map Monitoring', icon: <MapIcon size={20} />, path: '/map' },
     { title: 'File New Report', icon: <FileText size={20} />, path: '/report' },
     { title: 'Pothole Analysis', icon: <BarChart3 size={20} />, path: '/analytics' },
-    { title: 'Settings', icon: <Settings size={20} />, path: '/settings' },
   ];
 
   return (
