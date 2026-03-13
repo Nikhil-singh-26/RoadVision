@@ -26,11 +26,6 @@ const Sidebar = ({ onClose }) => {
     { title: t('nav.report'), icon: <FileText size={20} />, path: '/report' },
     { title: t('nav.analytics'), icon: <BarChart3 size={20} />, path: '/analytics' },
     { title: t('nav.settings'), icon: <Settings size={20} />, path: '/settings' },
-    { title: 'Portal Home', icon: <ChevronRight size={20} />, path: '/' },
-    { title: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
-    { title: 'Map Monitoring', icon: <MapIcon size={20} />, path: '/map' },
-    { title: 'File New Report', icon: <FileText size={20} />, path: '/report' },
-    { title: 'Pothole Analysis', icon: <BarChart3 size={20} />, path: '/analytics' },
   ];
 
   return (
