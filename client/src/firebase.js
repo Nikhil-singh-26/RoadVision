@@ -2,16 +2,18 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getStorage } from "firebase/storage";
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAg3z5mcJPzvHmXtrTYWYqPeFsPt2Gjpak",
-  authDomain: "roadvision-ba104.firebaseapp.com",
-  projectId: "roadvision-ba104",
-  storageBucket: "roadvision-ba104.firebasestorage.app",
-  messagingSenderId: "500366728161",
-  appId: "1:500366728161:web:1abde322a4d27f9752d0a0",
-  measurementId: "G-G9J4ZS5BS4"
+  apiKey: "AIzaSyC60ZGuae4jB-sWFW6jZQbAg_MQzumWoyQ",
+  authDomain: "roadvision-76994.firebaseapp.com",
+  projectId: "roadvision-76994",
+  storageBucket: "roadvision-76994.firebasestorage.app",
+  messagingSenderId: "350112374983",
+  appId: "1:350112374983:web:0ce3cc58360c055886dee2",
+  measurementId: "G-K3JS3GNTX0"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 const storage = getStorage(app);
