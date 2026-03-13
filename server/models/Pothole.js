@@ -25,6 +25,12 @@ const potholeSchema = new mongoose.Schema(
       type: String, // Can be from AWS S3, Cloudinary, or even local temporary static path
       required: false
     },
+    description: {
+      type: String,
+      required: false,
+      trim: true,
+      maxlength: 1000
+    },
     status: {
       type: String,
       enum: ['reported', 'under_repair', 'fixed'],

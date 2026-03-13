@@ -10,7 +10,7 @@ export const reportPothole = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { latitude, longitude, severityLevel, confidence, imageUrl } = req.body;
+  const { latitude, longitude, severityLevel, confidence, imageUrl, description } = req.body;
 
   try {
     const pothole = await Pothole.create({
@@ -19,6 +19,7 @@ export const reportPothole = async (req, res) => {
       severityLevel,
       detectionConfidence: confidence,
       imageUrl,
+      description,
       status: 'reported',
     });
 
