@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, LayerGroup } from 'react-leaflet';
+import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -18,8 +19,6 @@ const createCustomIcon = (color) => {
     popupAnchor: [0, -15],
   });
 };
-
-import { useNavigate } from 'react-router-dom';
 
 // Component to handle map re-centering
 const RecenterMap = ({ center }) => {
