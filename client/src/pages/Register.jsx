@@ -50,8 +50,8 @@ const Register = () => {
         <div className="flex flex-col items-center mb-8 text-center">
           <div className="bg-gray-50 p-3 rounded-full border border-gray-100 mb-3">
              <img 
-               src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Emblem_of_India.svg/800px-Emblem_of_India.svg.png" 
-               alt="Emblem" 
+               src="/emblem.jpeg" 
+               alt="Emblem of India" 
                className="h-12 w-auto"
              />
           </div>
