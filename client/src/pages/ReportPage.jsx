@@ -17,6 +17,9 @@ import {
   AlignLeft
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { storage } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useRef } from 'react';
 
 const ReportPage = () => {
   const { t } = useLanguage();
@@ -36,6 +39,8 @@ const ReportPage = () => {
 
   const [locating, setLocating] = useState(false);
   const [captureSuccess, setCaptureSuccess] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Parse URL parameters for pre-filled data
   useEffect(() => {
@@ -54,6 +59,28 @@ const ReportPage = () => {
     }
   }, [search]);
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setError('');
+
+    try {
+      const storageRef = ref(storage, `potholes/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(snapshot.ref);
+      
+      setFormData(prev => ({ ...prev, imageUrl: url }));
+      setCaptureSuccess(true);
+      setTimeout(() => setCaptureSuccess(false), 3000);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError("Failed to upload image. Please try again.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
   const handleGetLocation = () => {
     setLocating(true);
     setError('');
@@ -248,16 +275,54 @@ const ReportPage = () => {
               <div className="mb-10 text-left">
                 <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
                   <Camera size={12} className="mr-2" /> 
-                  Visual Evidence URL
+                  Visual Evidence
                 </label>
-                <input
-                  type="url"
-                  placeholder="Paste image URL (Optional)"
-                  className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#1a237e] focus:bg-white transition-all outline-none mb-2 text-left"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
-                />
-                <p className="text-[9px] text-gray-400 font-bold italic pl-1">Visual confirmation accelerates repair prioritization</p>
+                
+                <div className="space-y-4">
+                  <div className="flex gap-3">
+                    <input
+                      type="url"
+                      placeholder="Paste image URL (Optional)"
+                      className="flex-1 px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#1a237e] focus:bg-white transition-all outline-none text-left"
+                      value={formData.imageUrl}
+                      onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
+                    />
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      ref={fileInputRef}
+                      onChange={handleImageUpload}
+                      className="hidden" 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingImage}
+                      className="px-6 py-4 bg-orange-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+                    >
+                      {uploadingImage ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+                      <span>{uploadingImage ? 'Uploading...' : 'Capture'}</span>
+                    </button>
+                  </div>
+
+                  {formData.imageUrl && (
+                    <div className="relative w-full aspect-video rounded-3xl overflow-hidden border-4 border-white shadow-xl group">
+                      <img 
+                        src={formData.imageUrl} 
+                        alt="Evidence Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, imageUrl: ''})}
+                        className="absolute top-4 right-4 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-[9px] text-gray-400 font-bold italic pl-1 mt-2">Visual confirmation accelerates repair prioritization</p>
               </div>
 
               {/* Description Section */}
