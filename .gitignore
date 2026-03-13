@@ -1,0 +1,38 @@
+# Python cache
+
+**pycache**/
+*.pyc
+
+# Virtual environment
+
+venv/
+
+# YOLO training outputs
+
+runs/
+
+# Model weights
+
+*.pt
+*.onnx
+
+# Dataset files
+
+*.csv
+
+# Test images and videos
+
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.avi
+
+# VS Code settings
+
+.vscode/
+
+# OS junk
+
+.DS_Store
+Thumbs.db

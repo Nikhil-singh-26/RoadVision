@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Smart Pothole Detection & Monitoring System
 
 A comprehensive MERN stack application designed for municipal corporations to automatically detect, monitor, and manage road damages using YOLOv8 computer vision integration.
@@ -108,3 +109,6 @@ The required JSON payload structure is:
 - Email alerts for High severity detections.
 - Heatmap visualization of heavily damaged roads.
 - Advanced ML severity predictions.
+=======
+# RoadVision1
+>>>>>>> bc98ee46d66b62dfc3741c0476dfc9c46b2fb694
