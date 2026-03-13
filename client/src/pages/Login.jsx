@@ -2,8 +2,10 @@ import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ShieldCheck, Lock, Mail, AlertCircle } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const Login = () => {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,10 +22,10 @@ const Login = () => {
     try {
       if (login) {
         await login(email, password);
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials or portal sync failure.');
+      setError(err.response?.data?.message || t('login.error_credentials'));
     } finally {
       setLoading(false);
     }
@@ -34,25 +36,25 @@ const Login = () => {
       <div className="w-full max-w-lg p-10 bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col items-center">
         {/* Government Branding Header */}
         <div className="flex flex-col items-center mb-10 text-center">
-          <div className="bg-gray-50 p-4 rounded-full border border-gray-100 mb-4">
+          <div className="bg-gray-50 p-4 rounded-full border border-gray-100 mb-4 text-center">
              <img 
                src="/emblem.jpeg" 
                alt="Emblem of India" 
-               className="h-16 w-auto"
+               className="h-16 w-auto mx-auto"
              />
           </div>
           <h1 className="text-2xl font-black text-[#1a237e] uppercase tracking-tighter leading-tight mb-1">
-             GOVERNMENT OF INDIA
+             {t('welcome.gov_india')}
           </h1>
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] border-t border-gray-100 pt-2 w-full">
-             High Department Monitoring Portal
+             {t('welcome.ministry')}
           </p>
         </div>
 
-        <div className="w-full">
+        <div className="w-full text-left">
             <h2 className="text-xl font-black text-gray-800 mb-6 flex items-center">
                 <ShieldCheck size={20} className="mr-2 text-orange-600" />
-                Secure Officer Login
+                {t('common.officer')} {t('common.login')}
             </h2>
 
             {error && (
@@ -64,14 +66,14 @@ const Login = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Official ID (Email)</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.email')}</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 bg-gray-50 focus:ring-4 focus:ring-[#1a237e]/5 focus:border-[#1a237e] transition-all text-sm font-bold"
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 bg-gray-50 focus:ring-4 focus:ring-[#1a237e]/5 focus:border-[#1a237e] transition-all text-sm font-bold text-gray-900 placeholder-gray-400"
                     placeholder="officer.name@nic.in"
                     required
                   />
@@ -79,14 +81,14 @@ const Login = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Encrypted Password</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.encrypted_pass')}</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 bg-gray-50 focus:ring-4 focus:ring-[#1a237e]/5 focus:border-[#1a237e] transition-all text-sm font-bold"
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl border border-gray-200 bg-gray-50 focus:ring-4 focus:ring-[#1a237e]/5 focus:border-[#1a237e] transition-all text-sm font-bold text-gray-900 placeholder-gray-400"
                     placeholder="••••••••••••"
                     required
                   />
@@ -100,21 +102,21 @@ const Login = () => {
               >
                 {loading ? (
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                ) : 'Authenticate Credentials'}
+                ) : `${t('common.login')} ${t('common.officer')}`}
               </button>
             </form>
 
             <div className="mt-10 flex flex-col items-center space-y-4 pt-8 border-t border-gray-100">
-               <p className="text-xs text-gray-500 font-medium">New Officer or Admin?</p>
+               <p className="text-xs text-gray-500 font-medium">{t('common.new_user')}</p>
                <Link to="/register" className="text-[#1a237e] font-black text-xs uppercase hover:underline tracking-tighter">
-                  Request Portal Access 
+                  {t('common.request_access')} 
                </Link>
             </div>
         </div>
         
         {/* Security Notice */}
         <div className="mt-8 text-center text-[8px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed opacity-50 max-w-xs mb-6">
-           Authorized personnel only. All access is logged and recorded by the National Highway Authority surveillance center.
+           {t('login.security_notice')}
         </div>
 
         {/* Support Logos */}

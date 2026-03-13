@@ -2,8 +2,10 @@ import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { User, Mail, Lock, ShieldCheck, AlertCircle, Briefcase } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const Register = () => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -34,7 +36,7 @@ const Register = () => {
     try {
       if (register) {
         await register(formData.name, formData.email, formData.password, formData.role);
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Official registration failed.');
@@ -48,25 +50,25 @@ const Register = () => {
       <div className="w-full max-w-xl p-10 bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col items-center my-8">
         {/* Government Branding Header */}
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="bg-gray-50 p-3 rounded-full border border-gray-100 mb-3">
+          <div className="bg-gray-50 p-3 rounded-full border border-gray-100 mb-3 text-center">
              <img 
                src="/emblem.jpeg" 
                alt="Emblem of India" 
-               className="h-12 w-auto"
+               className="h-12 w-auto mx-auto"
              />
           </div>
           <h1 className="text-xl font-black text-[#1a237e] uppercase tracking-tighter leading-tight mb-1">
-             NATIONAL HIGHWAY AUTHORITY
+             {t('welcome.gov_india')}
           </h1>
           <p className="text-[8px] font-bold text-gray-400 uppercase tracking-[0.2em] border-t border-gray-100 pt-1.5 w-full">
-             Access Provisioning System
+             {t('welcome.ministry')}
           </p>
         </div>
 
-        <div className="w-full">
+        <div className="w-full text-left">
             <h2 className="text-lg font-black text-gray-800 mb-6 flex items-center">
                 <User size={18} className="mr-2 text-orange-600" />
-                Request New Officer Account
+                {t('common.request')} {t('common.officer')} {t('common.account')}
             </h2>
 
             {error && (
@@ -79,7 +81,7 @@ const Register = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.name')}</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                       <input
@@ -95,7 +97,7 @@ const Register = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Official Role</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.officer')} {t('common.role')}</label>
                     <div className="relative">
                       <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                       <select
@@ -104,15 +106,15 @@ const Register = () => {
                         onChange={handleChange}
                         className="w-full pl-10 pr-4 py-3.5 rounded-2xl border border-gray-200 bg-gray-50 focus:ring-4 focus:ring-[#1a237e]/5 focus:border-[#1a237e] transition-all text-xs font-bold appearance-none"
                       >
-                        <option value="officer">Field Officer</option>
-                        <option value="admin">Administrator</option>
+                        <option value="officer">{t('common.officer')}</option>
+                        <option value="admin">{t('common.admin')}</option>
                       </select>
                     </div>
                   </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">NIC Email ID</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.email')}</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                   <input
@@ -129,7 +131,7 @@ const Register = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Access Pin</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.pin')}</label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                       <input
@@ -145,7 +147,7 @@ const Register = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Confirm Pin</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.confirm_pin')}</label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                       <input
@@ -168,14 +170,14 @@ const Register = () => {
               >
                 {loading ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                ) : 'Submit Provisioning Request'}
+                ) : `${t('common.request')} ${t('common.account')}`}
               </button>
             </form>
 
             <div className="mt-8 flex flex-col items-center space-y-3 pt-6 border-t border-gray-100">
-               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Already authorized?</p>
+               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{t('common.already_auth')}</p>
                <Link to="/login" className="text-[#1a237e] font-black text-xs uppercase hover:underline tracking-tighter">
-                  Return to Login
+                  {t('common.return_login')}
                </Link>
             </div>
         </div>
@@ -185,3 +187,4 @@ const Register = () => {
 };
 
 export default Register;
+

@@ -1,11 +1,12 @@
-import { Bell, Search, HelpCircle, Menu, X } from 'lucide-react';
+import { Bell, Search, HelpCircle, Menu, X, Info, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 const Header = ({ onMenuClick }) => {
+  const { t } = useLanguage();
   const [notifications, setNotifications] = useState([]);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchNotifications();
@@ -36,12 +37,11 @@ const Header = ({ onMenuClick }) => {
         
         <div className="flex flex-col">
           <h1 className="text-sm md:text-xl font-extrabold text-[#1a237e] tracking-tight leading-tight uppercase">
-             National Highway Monitoring
-             <span className="hidden sm:inline"> System</span>
+             {t('header.title')}
           </h1>
           <div className="flex items-center mt-0.5 md:mt-1">
              <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-orange-500 mr-1.5 md:mr-2 animate-pulse"></div>
-             <p className="text-[8px] md:text-[10px] text-gray-500 font-bold uppercase tracking-[0.05em] md:tracking-[0.1em]">AI-Powered Portal</p>
+             <p className="text-[8px] md:text-[10px] text-gray-500 font-bold uppercase tracking-[0.05em] md:tracking-[0.1em]">{t('header.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -51,8 +51,8 @@ const Header = ({ onMenuClick }) => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input 
             type="text" 
-            placeholder="Search detections..." 
-            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a237e]/20 focus:border-[#1a237e] w-48 xl:w-64 transition-all"
+            placeholder={t('header.search')}
+            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1a237e]/20 focus:border-[#1a237e] w-48 xl:w-64 transition-all"
           />
         </div>
 
@@ -73,7 +73,7 @@ const Header = ({ onMenuClick }) => {
             {showNotifPanel && (
               <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="p-4 border-b border-gray-50 bg-[#1a237e] text-white flex justify-between items-center">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest">Surveillance Alerts</h4>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest">{t('header.alerts')}</h4>
                   <button onClick={() => setShowNotifPanel(false)}><X size={14} /></button>
                 </div>
                 <div className="max-h-64 overflow-y-auto">
@@ -82,21 +82,21 @@ const Header = ({ onMenuClick }) => {
                       <div key={i} className="p-4 border-b border-gray-50 hover:bg-gray-50 flex items-start space-x-3 cursor-pointer">
                         <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0"></div>
                         <div>
-                          <p className="text-xs font-black text-gray-900 leading-tight">CRITICAL DAMAGE DETECTED</p>
-                          <p className="text-[10px] text-gray-500 mt-1 font-medium italic">NH-Series Coordination: {notif.latitude.toFixed(2)}, {notif.longitude.toFixed(2)}</p>
+                          <p className="text-xs font-black text-gray-900 leading-tight uppercase">{t('header.critical_damage')}</p>
+                          <p className="text-[10px] text-gray-500 mt-1 font-medium italic">NH-Series Coord: {notif.latitude.toFixed(2)}, {notif.longitude.toFixed(2)}</p>
                         </div>
                       </div>
                     ))
                   ) : (
                     <div className="p-8 text-center bg-gray-50/50">
                       <Bell size={24} className="mx-auto text-gray-300 mb-3 opacity-50" />
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-tight">No unread notifications</p>
-                      <p className="text-[9px] text-gray-400 mt-1">AI Scan status: Nominal</p>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-tight">{t('header.no_alerts')}</p>
+                      <p className="text-[9px] text-gray-400 mt-1 font-mono italic">{t('header.scan_status')}</p>
                     </div>
                   )}
                 </div>
                 <div className="p-3 bg-gray-50 text-center border-t border-gray-100">
-                  <button className="text-[9px] font-black text-[#1a237e] uppercase hover:underline">View All Intelligence</button>
+                  <button className="text-[9px] font-black text-[#1a237e] uppercase hover:underline">{t('header.view_all')}</button>
                 </div>
               </div>
             )}

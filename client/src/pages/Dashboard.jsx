@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 import { 
   AlertTriangle, 
   AlertCircle, 
@@ -18,6 +19,7 @@ import {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [potholes, setPotholes] = useState([]);
   const [filteredPotholes, setFilteredPotholes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,7 +108,7 @@ const Dashboard = () => {
   if (loading) return (
     <div className="h-full w-full flex flex-col items-center justify-center bg-[#f8faff] p-12">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#1a237e] border-t-transparent mb-4"></div>
-        <p className="text-sm font-black text-[#1a237e] tracking-widest">LOADING ANALYTICS CORE...</p>
+        <p className="text-sm font-black text-[#1a237e] tracking-widest uppercase">{t('common.loading')}</p>
     </div>
   );
 
@@ -114,21 +116,21 @@ const Dashboard = () => {
     <div className="p-4 md:p-8">
       {/* Dashboard Top Banner */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 md:mb-8 pb-4 md:pb-6 border-b border-gray-200 gap-4">
-        <div>
+        <div className="text-left">
           <div className="flex items-center space-x-2 text-[#1a237e] mb-1">
              <Activity size={20} className="md:w-6 md:h-6" />
-             <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight">Surveillance Dashboard</h1>
+             <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight">{t('nav.dashboard')}</h1>
           </div>
-          <p className="text-[10px] md:text-sm text-gray-500 font-medium italic">Aggregate data visualization for Maintenance & Security</p>
+          <p className="text-[10px] md:text-sm text-gray-500 font-medium italic">{t('dashboard.visualization_desc')}</p>
         </div>
         
         <div className="flex space-x-2 md:space-x-3">
           <button 
              onClick={() => navigate('/report')}
-             className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-white border border-[#ea580c]/30 text-[#ea580c] px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-orange-50 transition-all shadow-sm"
+             className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-white border border-[#ea580c]/30 text-[#ea580c] px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-orange-50 transition-all shadow-sm uppercase tracking-widest"
           >
-             <AlertTriangle size={14} className="md:w-4 md:h-4" />
-             <span>File Report</span>
+             <AlertTriangle size={14} className="md:w-4 md:h-4 text-left" />
+             <span>{t('nav.report')}</span>
           </button>
           
           <div className="relative flex-1 md:flex-none">
@@ -138,19 +140,19 @@ const Dashboard = () => {
               onChange={(e) => setFilterSeverity(e.target.value)}
               className="w-full md:w-auto pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs md:text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm outline-none appearance-none"
             >
-              <option value="all">All Severities</option>
-              <option value="high">High Only</option>
-              <option value="medium">Medium Only</option>
-              <option value="low">Low Only</option>
+              <option value="all">{t('dashboard.all_severities')}</option>
+              <option value="high">{t('map.critical')}</option>
+              <option value="medium">{t('map.moderate')}</option>
+              <option value="low">{t('map.minor')}</option>
             </select>
           </div>
 
           <button 
             onClick={handleExport}
-            className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-[#1a237e] text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-[#283593] transition-all shadow-lg shadow-blue-900/10"
+            className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-[#1a237e] text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-[#283593] transition-all shadow-lg shadow-blue-900/10 uppercase tracking-widest"
           >
              <Download size={14} className="md:w-4 md:h-4" />
-             <span>Export CSV</span>
+             <span>{t('dashboard.export')}</span>
           </button>
         </div>
       </div>
@@ -163,12 +165,12 @@ const Dashboard = () => {
       )}
 
       {/* Analytics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10 text-left">
         {[
-          { label: 'Total Reported', value: stats.total, icon: <MapPin />, color: 'blue', desc: 'Total tracked incidents' },
-          { label: 'Critical Damage', value: stats.high, icon: <AlertTriangle />, color: 'red', desc: 'Immediate attention' },
-          { label: 'Pending Repairs', value: stats.pending, icon: <Clock3 />, color: 'orange', desc: 'Active tickets' },
-          { label: 'Resolved Tickets', value: stats.fixed, icon: <CheckCircle2 />, color: 'green', desc: 'Successfully restored' },
+          { label: t('dashboard.stats_detected'), value: stats.total, icon: <MapPin />, color: 'blue', desc: t('dashboard.stats_detected_desc') },
+          { label: t('map.critical'), value: stats.high, icon: <AlertTriangle />, color: 'red', desc: t('dashboard.stats_critical_desc') },
+          { label: t('dashboard.stats_pending'), value: stats.pending, icon: <Clock3 />, color: 'orange', desc: t('dashboard.stats_pending_desc') },
+          { label: t('dashboard.stats_resolved'), value: stats.fixed, icon: <CheckCircle2 />, color: 'green', desc: t('dashboard.stats_resolved_desc') },
         ].map((card, i) => (
           <div key={i} className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 relative overflow-hidden group hover:shadow-md transition-all border-b-4 border-b-${card.color}-500`}>
              <div className={`p-2.5 md:p-3 rounded-xl bg-${card.color}-50 text-${card.color}-600 inline-block mb-3 md:mb-4 group-hover:scale-110 transition-transform`}>
@@ -189,16 +191,16 @@ const Dashboard = () => {
         <div className="px-4 md:px-8 py-4 md:py-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#1a237e]/[0.02] gap-4">
           <div className="flex items-center space-x-3">
              <div className="hidden sm:block w-2 h-8 bg-[#1a237e] rounded-full"></div>
-             <h3 className="text-lg md:text-xl font-black text-[#1a237e] uppercase tracking-tight">Surveillance Detections</h3>
+             <h3 className="text-lg md:text-xl font-black text-[#1a237e] uppercase tracking-tight">{t('dashboard.table_title')}</h3>
           </div>
           <div className="relative w-full sm:w-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search coordinates..." 
+              placeholder={t('dashboard.search_coord')} 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-64 lg:w-80 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1a237e]/20 focus:border-[#1a237e] bg-white" 
+              className="w-full sm:w-64 lg:w-80 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1a237e]/20 focus:border-[#1a237e] bg-white text-left font-bold text-gray-900 placeholder-gray-400" 
             />
           </div>
         </div>
@@ -207,12 +209,12 @@ const Dashboard = () => {
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Reference</th>
-                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">Location</th>
-                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Severity</th>
-                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Confidence</th>
-                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">Status</th>
-                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-right">Actions</th>
+                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">{t('dashboard.col_ref')}</th>
+                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">{t('dashboard.col_loc')}</th>
+                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">{t('dashboard.col_sev')}</th>
+                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">{t('dashboard.col_conf')}</th>
+                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">{t('dashboard.col_status')}</th>
+                <th className="px-6 md:px-8 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-right">{t('dashboard.col_actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -221,7 +223,7 @@ const Dashboard = () => {
                   <td colSpan="6" className="px-8 py-16 text-center">
                      <div className="flex flex-col items-center opacity-40">
                         <Activity size={48} className="mb-4 text-gray-300" />
-                        <p className="text-lg font-bold text-gray-400 italic">No structural damages found.</p>
+                        <p className="text-lg font-bold text-gray-400 italic">{t('dashboard.no_data')}</p>
                      </div>
                   </td>
                 </tr>
@@ -237,13 +239,13 @@ const Dashboard = () => {
                            </div>
                         </div>
                       ) : (
-                        <div className="w-16 h-12 md:w-20 md:h-14 bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-[8px] font-black text-gray-300 uppercase mx-auto">NO_IMG</div>
+                        <div className="w-16 h-12 md:w-20 md:h-14 bg-gray-100 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center text-[8px] font-black text-gray-300 uppercase mx-auto">{t('dashboard.no_img')}</div>
                       )}
                     </td>
                     <td className="px-6 md:px-8 py-4">
                        <div className="flex flex-col">
                           <span className="text-[11px] md:text-xs font-black text-gray-900 font-mono tracking-tighter">{pothole.latitude.toFixed(4)}, {pothole.longitude.toFixed(4)}</span>
-                          <span className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-tight mt-1">NH-Series India</span>
+                          <span className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-tight mt-1">{t('welcome.gov_india')}</span>
                        </div>
                     </td>
                     <td className="px-6 md:px-8 py-4 text-center">
@@ -251,7 +253,7 @@ const Dashboard = () => {
                         ${pothole.severityLevel === 'high' ? 'bg-red-100 text-red-700' : 
                           pothole.severityLevel === 'medium' ? 'bg-orange-100 text-orange-700' : 
                           'bg-green-100 text-green-700'}`}>
-                        {pothole.severityLevel}
+                        {pothole.severityLevel === 'high' ? t('map.critical') : pothole.severityLevel === 'medium' ? t('map.moderate') : t('map.minor')}
                       </span>
                     </td>
                     <td className="px-6 md:px-8 py-4 text-center">
@@ -266,7 +268,7 @@ const Dashboard = () => {
                        <div className="flex items-center">
                           <span className={`w-2 h-2 rounded-full mr-2 ${pothole.status === 'fixed' ? 'bg-green-500' : 'bg-orange-500 animate-pulse'}`}></span>
                           <span className={pothole.status === 'fixed' ? 'text-green-700' : 'text-orange-700'}>
-                            {pothole.status.replace('_', ' ')}
+                            {pothole.status === 'reported' ? t('dashboard.status_reported') : pothole.status === 'under_repair' ? t('dashboard.status_repairing') : t('dashboard.status_fixed')}
                           </span>
                        </div>
                     </td>
@@ -277,14 +279,14 @@ const Dashboard = () => {
                             onChange={(e) => handleStatusUpdate(pothole._id, e.target.value)}
                             className="text-[9px] md:text-[10px] font-black uppercase tracking-tight border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:ring-4 focus:ring-[#1a237e]/10 outline-none"
                           >
-                            <option value="reported">Reported</option>
-                            <option value="under_repair">Repairing</option>
-                            <option value="fixed">Fixed</option>
+                            <option value="reported">{t('dashboard.status_reported')}</option>
+                            <option value="under_repair">{t('dashboard.status_repairing')}</option>
+                            <option value="fixed">{t('dashboard.status_fixed')}</option>
                           </select>
                           <button 
                             onClick={() => navigate(`/map?lat=${pothole.latitude}&lng=${pothole.longitude}`)}
                             className="p-2 text-gray-400 hover:text-[#1a237e] hover:bg-gray-100 rounded-lg transition-all"
-                            title="View on Map"
+                            title={t('nav.map')}
                           >
                              <MapPin size={16} />
                           </button>
@@ -298,10 +300,10 @@ const Dashboard = () => {
         </div>
         
         <div className="px-4 md:px-8 py-4 md:py-6 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest text-center sm:text-left">Showing {filteredPotholes.length} records</p>
+           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest text-center sm:text-left">{t('dashboard.showing_records', { count: filteredPotholes.length })}</p>
            <div className="flex space-x-2 w-full sm:w-auto">
-              <button disabled className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 text-[10px] font-black text-gray-300 rounded-lg uppercase tracking-tight">Prev</button>
-              <button disabled className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 text-[10px] font-black text-gray-700 rounded-lg uppercase tracking-tight">Next</button>
+              <button disabled className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 text-[10px] font-black text-gray-300 rounded-lg uppercase tracking-tight">{t('dashboard.prev')}</button>
+              <button disabled className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 text-[10px] font-black text-gray-700 rounded-lg uppercase tracking-tight">{t('dashboard.next')}</button>
            </div>
         </div>
       </div>

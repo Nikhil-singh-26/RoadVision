@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
-import { 
-  Camera, 
-  MapPin, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Loader2, 
+import {
+  Camera,
+  MapPin,
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
   ArrowRight,
   Info,
-  Navigation
+  Navigation,
+  ShieldCheck,
+  BrainCircuit,
+  X,
+  Plus
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const ReportPage = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { search } = useLocation();
   const [loading, setLoading] = useState(false);
@@ -71,9 +77,9 @@ const ReportPage = () => {
           setTimeout(() => setCaptureSuccess(false), 3000);
         },
         (err) => {
-          let msg = 'Unable to fetch location. Please enter manually.';
-          if (err.code === err.PERMISSION_DENIED) msg = 'Location permission denied. Please enable it in browser settings.';
-          if (err.code === err.TIMEOUT) msg = 'Location request timed out. Please try again.';
+          let msg = t('report.err_fetch_loc');
+          if (err.code === err.PERMISSION_DENIED) msg = t('report.err_permission_denied');
+          if (err.code === err.TIMEOUT) msg = t('report.err_timeout');
           
           setError(msg);
           setLocating(false);
@@ -81,7 +87,7 @@ const ReportPage = () => {
         options
       );
     } else {
-      setError('Geolocation is not supported by your browser.');
+      setError(t('report.err_not_supported'));
       setLocating(false);
     }
   };
@@ -104,7 +110,7 @@ const ReportPage = () => {
       setSuccess(true);
       setTimeout(() => navigate('/map'), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Transmission failure. Please try again.');
+      setError(err.response?.data?.message || t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -116,16 +122,16 @@ const ReportPage = () => {
         <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
           <CheckCircle2 size={48} className="text-green-600" />
         </div>
-        <h1 className="text-3xl font-black text-[#1a237e] uppercase tracking-tighter mb-4 italic">Incident Logged</h1>
+        <h1 className="text-3xl font-black text-[#1a237e] uppercase tracking-tighter mb-4 italic">{t('report.title')} {t('common.success')}</h1>
         <p className="text-gray-500 max-w-md font-medium mb-8">
-          The structural integrity report has been successfully transmitted to the central GIS database for immediate review.
+          {t('common.success_save')}
         </p>
         <div className="flex space-x-4">
           <button 
             onClick={() => navigate('/map')}
             className="px-8 py-3 bg-[#1a237e] text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-xl hover:bg-blue-900 transition-all flex items-center"
           >
-            Monitor GIS Map <ArrowRight size={18} className="ml-2" />
+            {t('nav.map')} <ArrowRight size={18} className="ml-2" />
           </button>
         </div>
       </div>
@@ -133,21 +139,21 @@ const ReportPage = () => {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto text-left">
       {/* Header section */}
-      <div className="mb-10">
+      <div className="mb-10 text-left">
         <div className="flex items-center space-x-3 text-[#1a237e] mb-2">
           <AlertTriangle size={28} className="text-orange-500" />
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Report Road Defect</h1>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">{t('report.title')}</h1>
         </div>
-        <p className="text-sm md:text-base text-gray-500 font-medium italic">Contributing to the structural safety of India's road infrastructure</p>
+        <p className="text-sm md:text-base text-gray-500 font-medium italic">{t('report.desc')}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left">
         {/* Main Form */}
         <div className="lg:col-span-2">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl border border-gray-100 relative overflow-hidden">
+            <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl border border-gray-100 relative overflow-hidden text-left">
               <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                  <AlertTriangle size={120} />
               </div>
@@ -167,7 +173,7 @@ const ReportPage = () => {
                 </label>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="relative group">
+                  <div className="relative group text-left">
                     <input
                       type="number"
                       step="any"
@@ -211,7 +217,7 @@ const ReportPage = () => {
               </div>
 
               {/* Severity Section */}
-              <div className="mb-8">
+              <div className="mb-8 text-left">
                 <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
                   <AlertTriangle size={12} className="mr-2" /> 
                   Observation Severity
@@ -230,14 +236,14 @@ const ReportPage = () => {
                           : 'bg-gray-50 border-gray-100 text-gray-400 hover:border-gray-200'
                       }`}
                     >
-                      {level}
+                      {level === 'low' ? t('map.minor') : level === 'medium' ? t('map.moderate') : t('map.critical')}
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Visual Evidence Section */}
-              <div className="mb-10">
+              <div className="mb-10 text-left">
                 <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
                   <Camera size={12} className="mr-2" /> 
                   Visual Evidence URL
@@ -245,7 +251,7 @@ const ReportPage = () => {
                 <input
                   type="url"
                   placeholder="Paste image URL (Optional)"
-                  className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#1a237e] focus:bg-white transition-all outline-none mb-2"
+                  className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#1a237e] focus:bg-white transition-all outline-none mb-2 text-left"
                   value={formData.imageUrl}
                   onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
                 />
@@ -260,11 +266,11 @@ const ReportPage = () => {
                 {loading ? (
                   <>
                     <Loader2 size={20} className="animate-spin" />
-                    <span>Transmitting Data...</span>
+                    <span>{t('common.loading')}...</span>
                   </>
                 ) : (
                   <>
-                    <span>Submit Incident Report</span>
+                    <span>SUBMIT {t('report.title')}</span>
                     <ArrowRight size={20} />
                   </>
                 )}
@@ -274,8 +280,8 @@ const ReportPage = () => {
         </div>
 
         {/* Sidebar Info/Policy */}
-        <div className="space-y-6">
-          <div className="bg-[#1a237e] text-white p-6 rounded-[2rem] shadow-xl relative overflow-hidden">
+        <div className="space-y-6 text-left">
+          <div className="bg-[#1a237e] text-white p-6 rounded-[2rem] shadow-xl relative overflow-hidden text-left">
              <div className="absolute top-[-20px] right-[-20px] opacity-10">
                 <Navigation size={120} />
              </div>
@@ -299,7 +305,7 @@ const ReportPage = () => {
             <div className="p-3 bg-blue-50 text-[#1a237e] rounded-2xl">
               <Info size={24} />
             </div>
-            <div>
+            <div className="text-left">
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Policy</p>
               <p className="text-[11px] font-bold text-gray-700 leading-tight">Reports are vetted by AI and verified by field officers.</p>
             </div>
@@ -311,3 +317,4 @@ const ReportPage = () => {
 };
 
 export default ReportPage;
+

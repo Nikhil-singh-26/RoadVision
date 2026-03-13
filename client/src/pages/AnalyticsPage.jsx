@@ -24,6 +24,7 @@ import {
   Calendar,
   MapPin
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 ChartJS.register(
   CategoryScale,
@@ -39,6 +40,7 @@ ChartJS.register(
 );
 
 const AnalyticsPage = () => {
+  const { t } = useLanguage();
   const [potholes, setPotholes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -64,10 +66,10 @@ const AnalyticsPage = () => {
       counts[p.severityLevel]++;
     });
     return {
-      labels: ['High Severity', 'Medium Severity', 'Low Severity'],
+      labels: [t('map.critical'), t('map.moderate'), t('map.minor')],
       datasets: [
         {
-          label: 'Total Reports',
+          label: t('dashboard.stats_detected'),
           data: [counts.high, counts.medium, counts.low],
           backgroundColor: [
             'rgba(239, 68, 68, 0.8)', // Red
@@ -92,7 +94,7 @@ const AnalyticsPage = () => {
       counts[p.status]++;
     });
     return {
-      labels: ['Reported', 'Repairing', 'Fixed'],
+      labels: [t('dashboard.status_reported'), t('dashboard.status_repairing'), t('dashboard.status_fixed')],
       datasets: [
         {
           data: [counts.reported, counts.under_repair, counts.fixed],
@@ -113,7 +115,6 @@ const AnalyticsPage = () => {
   };
 
   const getTrendData = () => {
-    // Group by date (simulating last 7 days since real data might be sparse)
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
@@ -128,7 +129,7 @@ const AnalyticsPage = () => {
       labels: last7Days.map(d => new Date(d).toLocaleDateString(undefined, { weekday: 'short' })),
       datasets: [
         {
-          label: 'Daily Reports',
+          label: t('dashboard.stats_detected'),
           data: counts,
           fill: true,
           borderColor: '#1a237e',
@@ -144,18 +145,18 @@ const AnalyticsPage = () => {
   if (loading) return (
     <div className="h-full w-full flex flex-col items-center justify-center bg-[#f8faff] p-12">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#1a237e] border-t-transparent mb-4"></div>
-        <p className="text-sm font-black text-[#1a237e] tracking-widest uppercase">Initializing Neural Matrix...</p>
+        <p className="text-sm font-black text-[#1a237e] tracking-widest uppercase">{t('common.loading')}</p>
     </div>
   );
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto text-left">
       {/* Header */}
-      <div className="mb-8 p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="mb-8 p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 text-left">
         <div>
            <div className="flex items-center space-x-2 text-[#1a237e] mb-1">
               <BarChart3 size={24} className="text-orange-500" />
-              <h1 className="text-2xl font-black uppercase tracking-tight">Intelligence Analytics</h1>
+              <h1 className="text-2xl font-black uppercase tracking-tight">{t('nav.analytics')}</h1>
            </div>
            <p className="text-sm text-gray-500 font-medium">Predictive modeling and historical damage distribution</p>
         </div>
@@ -166,14 +167,14 @@ const AnalyticsPage = () => {
       </div>
 
       {error && (
-        <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-center text-red-700">
+        <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-center text-red-700 text-left">
            <AlertTriangle className="mr-3" />
            <p className="font-bold text-sm tracking-tight">{error}</p>
         </div>
       )}
 
       {/* Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 text-left">
         
         {/* Severity Distribution */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
@@ -253,7 +254,7 @@ const AnalyticsPage = () => {
       </div>
 
       {/* Summary Stats Footer */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
          {[
            { label: 'Critical Area', value: 'Zone-A', icon: <MapPin size={16}/>, color: 'red' },
            { label: 'Avg Confidence', value: '88.4%', icon: <TrendingUp size={16}/>, color: 'blue' },
@@ -276,3 +277,4 @@ const AnalyticsPage = () => {
 };
 
 export default AnalyticsPage;
+
