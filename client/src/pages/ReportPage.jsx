@@ -13,7 +13,7 @@ import {
   ShieldCheck,
   BrainCircuit,
   X,
-  Plus
+  Plus,
   AlignLeft
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
