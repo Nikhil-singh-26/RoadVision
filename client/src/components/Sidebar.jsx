@@ -1,21 +1,31 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  Map as MapIcon, 
+  Map, 
   FileText, 
   BarChart3, 
+  Settings,
   LogOut,
   ChevronRight,
-  X
+  X,
+  Home
 } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const Sidebar = ({ onClose }) => {
   const location = useLocation();
   const { user, logout } = useContext(AuthContext);
+  const { t } = useLanguage();
 
   const menuItems = [
+    { title: t('nav.home'), icon: <Home size={20} />, path: '/' },
+    { title: t('nav.dashboard'), icon: <LayoutDashboard size={20} />, path: '/dashboard' },
+    { title: t('nav.map'), icon: <Map size={20} />, path: '/map' },
+    { title: t('nav.report'), icon: <FileText size={20} />, path: '/report' },
+    { title: t('nav.analytics'), icon: <BarChart3 size={20} />, path: '/analytics' },
+    { title: t('nav.settings'), icon: <Settings size={20} />, path: '/settings' },
     { title: 'Portal Home', icon: <ChevronRight size={20} />, path: '/' },
     { title: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
     { title: 'Map Monitoring', icon: <MapIcon size={20} />, path: '/map' },
@@ -33,11 +43,12 @@ const Sidebar = ({ onClose }) => {
           <X size={20} />
         </button>
         
-        <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center mb-3 shadow-inner p-2">
-            <img src="/NHAI.jpeg" className="w-full h-full object-contain" alt="NHAI Logo" />
+        <div className="w-20 h-20 md:w-24 md:h-24 bg-[#1a237e] rounded-full flex items-center justify-center mb-3 shadow-2xl border-4 border-white/20 p-1 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-white rounded-full"></div>
+            <img src="/NHAI.jpeg" className="w-[85%] h-[85%] object-contain relative z-10" alt="NHAI Logo" />
         </div>
-        <h2 className="text-xs md:text-sm font-semibold text-center uppercase tracking-wider text-orange-400">Road Transport</h2>
-        <p className="text-[10px] text-center text-white/60">Govt. of India</p>
+        <h2 className="text-xs md:text-sm font-semibold text-center uppercase tracking-wider text-orange-400">{t('common.officer')} {t('common.portal')}</h2>
+        <p className="text-[10px] text-center text-white/60">{t('welcome.gov_india')}</p>
       </div>
 
       <nav className="flex-1 mt-4 overflow-y-auto custom-scrollbar">
@@ -45,7 +56,7 @@ const Sidebar = ({ onClose }) => {
           const isActive = location.pathname === item.path;
           return (
             <Link
-              key={item.title}
+              key={item.path}
               to={item.path}
               onClick={() => {
                 if (window.innerWidth < 1024 && onClose) onClose();
@@ -76,8 +87,8 @@ const Sidebar = ({ onClose }) => {
               />
            </div>
            <div className="ml-3 overflow-hidden">
-             <p className="text-xs font-bold truncate leading-none mb-1">{user?.name || 'Officer'}</p>
-             <p className="text-[10px] text-orange-400 capitalize opacity-80">{user?.role || 'Field Officer'}</p>
+             <p className="text-xs font-bold truncate leading-none mb-1">{user?.name || t('common.officer')}</p>
+             <p className="text-[10px] text-orange-400 capitalize opacity-80">{user?.role === 'admin' ? t('common.admin') : t('common.officer')}</p>
            </div>
         </div>
         <button
@@ -85,7 +96,7 @@ const Sidebar = ({ onClose }) => {
           className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white rounded-xl transition-all text-xs font-bold border border-red-500/20"
         >
           <LogOut size={16} />
-          <span>Logout Portal</span>
+          <span>{t('common.logout')}</span>
         </button>
       </div>
     </div>
