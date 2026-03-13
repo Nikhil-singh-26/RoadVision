@@ -10,6 +10,7 @@ import HomePage from './pages/HomePage';
 import WelcomePage from './pages/WelcomePage';
 import ReportPage from './pages/ReportPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import SettingsPage from './pages/SettingsPage';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -90,6 +91,17 @@ const AppRoots = () => {
             <ProtectedRoute>
               <Layout>
                 <AnalyticsPage />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SettingsPage />
               </Layout>
             </ProtectedRoute>
           } 
