@@ -153,7 +153,15 @@
     "err_fetch_loc": "Unable to fetch location. Please enter manually.",
     "err_permission_denied": "Location permission denied. Please enable it in browser settings.",
     "err_timeout": "Location request timed out. Please try again.",
-    "err_not_supported": "Geolocation is not supported by your browser."
+    "err_not_supported": "Geolocation is not supported by your browser.",
+    "capture": "Capture Evidence",
+    "capture_desc": "Tap to open camera or upload road defect photo",
+    "gps_active": "GPS Link Active",
+    "gps_searching": "Searching Signal...",
+    "gps_no_signal": "No GPS Signal",
+    "submit_report": "SUBMIT REPORT",
+    "transmitting": "Transmitting...",
+    "proof_locked": "Visual Proof Locked"
   },
   "map": {
     "title": "Geospatial Surveillance",

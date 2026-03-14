@@ -42,8 +42,11 @@ const ReportPage = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Parse URL parameters for pre-filled data
+  // Auto-capture location on mount
   useEffect(() => {
+    handleGetLocation();
+    
+    // Parse URL parameters for pre-filled data (keep for backward compatibility)
     const params = new URLSearchParams(search);
     const lat = params.get('lat');
     const lng = params.get('lng');
@@ -122,6 +125,15 @@ const ReportPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.imageUrl) {
+      setError("Please upload an image evidence first.");
+      return;
+    }
+    if (!formData.latitude || !formData.longitude) {
+      setError("Location coordinates are required. Please enable GPS.");
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -132,8 +144,8 @@ const ReportPage = () => {
         longitude: parseFloat(formData.longitude),
         severityLevel: formData.severityLevel,
         confidence: 1.0,
-        imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1544376798-89aa6b82c6cd?q=80&w=1000&auto=format&fit=crop',
-        description: formData.description
+        imageUrl: formData.imageUrl,
+        description: formData.description || 'Reported via mobile image upload'
       });
       
       setSuccess(true);
@@ -181,182 +193,119 @@ const ReportPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left">
         {/* Main Form */}
         <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl border border-gray-100 relative overflow-hidden text-left">
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                 <AlertTriangle size={120} />
+          <form onSubmit={handleSubmit} className="space-y-6 text-left">
+            <div className="bg-white p-6 md:p-12 rounded-[2.5rem] shadow-2xl border border-gray-100 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none group-hover:rotate-12 transition-transform duration-700">
+                 <Camera size={180} />
               </div>
 
               {error && (
-                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg flex items-center text-red-700">
+                <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-2xl flex items-center text-red-700 animate-in fade-in slide-in-from-top-2">
                   <Info className="w-5 h-5 mr-3 flex-shrink-0" />
                   <p className="font-bold text-xs md:text-sm tracking-tight">{error}</p>
                 </div>
               )}
 
-              {/* Location Section */}
-              <div className="mb-8">
-                <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
-                  <MapPin size={12} className="mr-2" /> 
-                  Geospatial Coordinates
-                </label>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="relative group text-left">
-                    <input
-                      type="number"
-                      step="any"
-                      required
-                      placeholder="Latitude"
-                      className="w-full pl-4 pr-10 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-[#1a237e] focus:bg-white transition-all outline-none"
-                      value={formData.latitude}
-                      onChange={(e) => setFormData({...formData, latitude: e.target.value})}
-                    />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300">N</div>
-                  </div>
-                  <div className="relative group">
-                    <input
-                      type="number"
-                      step="any"
-                      required
-                      placeholder="Longitude"
-                      className="w-full pl-4 pr-10 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-[#1a237e] focus:bg-white transition-all outline-none"
-                      value={formData.longitude}
-                      onChange={(e) => setFormData({...formData, longitude: e.target.value})}
-                    />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300">E</div>
-                  </div>
+              {/* Status Bar */}
+              <div className="flex items-center justify-between mb-10 px-4 py-3 bg-gray-50 rounded-2xl border border-gray-100">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-2 h-2 rounded-full ${formData.latitude ? 'bg-green-500 animate-pulse' : 'bg-red-400'}`}></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    {locating ? t('report.gps_searching') : (formData.latitude ? t('report.gps_active') : t('report.gps_no_signal'))}
+                  </span>
                 </div>
+                {formData.latitude && (
+                  <span className="text-[10px] font-mono font-bold text-[#1a237e]/60">
+                    {formData.latitude}, {formData.longitude}
+                  </span>
+                )}
+              </div>
 
-                <button
-                  type="button"
-                  onClick={handleGetLocation}
-                  disabled={locating}
-                  className={`w-full flex items-center justify-center space-x-2 py-3 border rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 ${
-                    captureSuccess 
-                      ? 'bg-green-50 border-green-200 text-green-700' 
-                      : 'bg-blue-50 text-[#1a237e] border-blue-100 hover:bg-blue-100'
+              {/* Visual Evidence Section - The Hero Interaction */}
+              <div className="mb-10">
+                <div 
+                  onClick={() => !formData.imageUrl && fileInputRef.current?.click()}
+                  className={`relative cursor-pointer group/upload transition-all duration-500 ${
+                    formData.imageUrl 
+                      ? 'h-auto' 
+                      : 'h-80 border-4 border-dashed border-gray-100 bg-gray-50/50 hover:bg-blue-50/50 hover:border-blue-200 rounded-[2rem] flex flex-col items-center justify-center p-8'
                   }`}
                 >
-                  {locating ? <Loader2 size={16} className="animate-spin" /> : (captureSuccess ? <CheckCircle2 size={16} /> : <Navigation size={16} />)}
-                  <span>
-                    {locating ? 'Triangulating Satellite Signal...' : (captureSuccess ? 'Coordinates Locked Successfully' : 'Auto-Capture Current Location')}
-                  </span>
-                </button>
-              </div>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    className="hidden" 
+                  />
 
-              {/* Severity Section */}
-              <div className="mb-8 text-left">
-                <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
-                  <AlertTriangle size={12} className="mr-2" /> 
-                  Observation Severity
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {['low', 'medium', 'high'].map((level) => (
-                    <button
-                      key={level}
-                      type="button"
-                      onClick={() => setFormData({...formData, severityLevel: level})}
-                      className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
-                        formData.severityLevel === level
-                          ? level === 'low' ? 'bg-green-500 border-green-600 text-white shadow-lg shadow-green-500/30' :
-                             level === 'medium' ? 'bg-orange-500 border-orange-600 text-white shadow-lg shadow-orange-500/30' :
-                             'bg-red-500 border-red-600 text-white shadow-lg shadow-red-500/30'
-                          : 'bg-gray-50 border-gray-100 text-gray-400 hover:border-gray-200'
-                      }`}
-                    >
-                      {level === 'low' ? t('map.minor') : level === 'medium' ? t('map.moderate') : t('map.critical')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Visual Evidence Section */}
-              <div className="mb-10 text-left">
-                <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
-                  <Camera size={12} className="mr-2" /> 
-                  Visual Evidence
-                </label>
-                
-                <div className="space-y-4">
-                  <div className="flex gap-3">
-                    <input
-                      type="url"
-                      placeholder="Paste image URL (Optional)"
-                      className="flex-1 px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#1a237e] focus:bg-white transition-all outline-none text-left"
-                      value={formData.imageUrl}
-                      onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
-                    />
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      ref={fileInputRef}
-                      onChange={handleImageUpload}
-                      className="hidden" 
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingImage}
-                      className="px-6 py-4 bg-orange-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
-                    >
-                      {uploadingImage ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
-                      <span>{uploadingImage ? 'Uploading...' : 'Capture'}</span>
-                    </button>
-                  </div>
-
-                  {formData.imageUrl && (
-                    <div className="relative w-full aspect-video rounded-3xl overflow-hidden border-4 border-white shadow-xl group">
+                  {!formData.imageUrl ? (
+                    <>
+                      <div className="w-20 h-20 bg-[#1a237e] text-orange-400 rounded-3xl flex items-center justify-center mb-6 shadow-xl group-hover/upload:scale-110 transition-transform duration-500">
+                        {uploadingImage ? <Loader2 size={32} className="animate-spin" /> : <Camera size={32} />}
+                      </div>
+                      <h3 className="text-xl font-black text-[#1a237e] uppercase tracking-tighter mb-2 italic">{t('report.capture')}</h3>
+                      <p className="text-sm text-gray-400 font-medium max-w-[200px] text-center italic">{t('report.capture_desc')}</p>
+                      
+                      {uploadingImage && (
+                        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center rounded-[2rem] z-10">
+                           <div className="flex flex-col items-center">
+                              <Loader2 size={40} className="text-[#1a237e] animate-spin mb-4" />
+                              <p className="text-xs font-black uppercase tracking-widest text-[#1a237e]">{t('report.locating')}</p>
+                           </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="relative rounded-[2rem] overflow-hidden border-[6px] border-white shadow-2xl group/preview">
                       <img 
                         src={formData.imageUrl} 
                         alt="Evidence Preview" 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover max-h-[400px]"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover/preview:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                        <p className="text-white text-[10px] font-black uppercase tracking-[0.2em] italic">{t('report.proof_locked')}</p>
+                      </div>
                       <button
                         type="button"
-                        onClick={() => setFormData({...formData, imageUrl: ''})}
-                        className="absolute top-4 right-4 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFormData({...formData, imageUrl: ''});
+                        }}
+                        className="absolute top-4 right-4 w-10 h-10 bg-red-500 text-white rounded-2xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
                       >
-                        <X size={16} />
+                        <X size={20} />
                       </button>
                     </div>
                   )}
                 </div>
-                <p className="text-[9px] text-gray-400 font-bold italic pl-1 mt-2">Visual confirmation accelerates repair prioritization</p>
-              </div>
-
-              {/* Description Section */}
-              <div className="mb-10">
-                <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
-                  <AlignLeft size={12} className="mr-2" /> 
-                  Additional Details / Observations
-                </label>
-                <textarea
-                  placeholder="E.g., Located near the north exit, causes heavy traffic slowdown..."
-                  className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#1a237e] focus:bg-white transition-all outline-none mb-2 min-h-[100px] resize-y"
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                />
-                <p className="text-[9px] text-gray-400 font-bold italic pl-1">Optional context helps field officers prepare appropriate repair materials</p>
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full py-5 bg-[#1a237e] text-orange-400 rounded-3xl text-sm font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-[#283593] hover:text-white transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center space-x-3"
+                disabled={loading || !formData.imageUrl || !formData.latitude}
+                className={`w-full py-6 rounded-3xl text-sm font-black uppercase tracking-[0.3em] shadow-2xl transition-all active:scale-95 flex items-center justify-center space-x-3 ${
+                  !formData.imageUrl || !formData.latitude
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-[#1a237e] text-orange-400 hover:bg-[#283593] hover:text-white'
+                }`}
               >
                 {loading ? (
                   <>
-                    <Loader2 size={20} className="animate-spin" />
-                    <span>{t('common.loading')}...</span>
+                    <Loader2 size={24} className="animate-spin" />
+                    <span>{t('report.transmitting')}</span>
                   </>
                 ) : (
                   <>
-                    <span>SUBMIT {t('report.title')}</span>
-                    <ArrowRight size={20} />
+                    <span>{t('report.submit_report')}</span>
+                    <ArrowRight size={24} />
                   </>
                 )}
               </button>
+              
+              <p className="text-center mt-6 text-[9px] text-gray-400 font-black uppercase tracking-widest opacity-60">
+                Encrypted Data Transmission • Active GPS Tagging
+              </p>
             </div>
           </form>
         </div>
