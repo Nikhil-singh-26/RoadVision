@@ -1,0 +1,230 @@
+╔══════════════════════════════════════════════════════════════════╗
+║        RoadVision — HOW TO RUN & TEST (Complete Guide)         ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  STEP 0: PREREQUISITES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before running anything, make sure you have:
+
+  1. Python 3.10+ installed
+  2. Node.js 18+ installed
+  3. pip (Python package manager)
+  4. The following pip packages (the run script installs these for you):
+     - fastapi, uvicorn, python-multipart
+     - ultralytics, opencv-python-headless, numpy, Pillow
+     - httpx, pydantic, requests
+
+If you DON'T have python3-venv installed (common on Ubuntu/WSL):
+
+  sudo apt install python3.12-venv
+
+But the run script works WITHOUT it by using ml-pipeline/venv or global pip.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  STEP 1: FIX BROKEN STATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If previous runs failed, clean up first:
+
+  rm -rf services/.venv
+  rm -rf storage/detections
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  STEP 2: INSTALL DEPENDENCIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OPTION A — Use the existing ml-pipeline venv (recommended):
+
+  source ml-pipeline/venv/bin/activate
+  pip install fastapi uvicorn python-multipart httpx Pillow pydantic
+
+OPTION B — Install globally:
+
+  pip install fastapi uvicorn python-multipart httpx ultralytics opencv-python-headless numpy Pillow pydantic requests
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  STEP 3: RUN ALL SERVICES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OPTION A — One command (easiest):
+
+  cd /home/santiago/projects/RoadVision1
+  bash run_services.sh
+
+  This starts all 3 services and runs health checks.
+  Press Ctrl+C to stop everything.
+
+OPTION B — Run each service manually (better for debugging):
+
+  # Terminal 1: Activate venv
+  cd /home/santiago/projects/RoadVision1
+  source ml-pipeline/venv/bin/activate
+
+  # Terminal 1: Inference Service
+  cd services/inference-service
+  MODEL_PATH=../../runs/detect/train2/weights/best.pt \
+  STORAGE_DIR=../../storage/detections \
+  python3 main.py
+
+  # Terminal 2: Complaint Service
+  cd /home/santiago/projects/RoadVision1
+  source ml-pipeline/venv/bin/activate
+  cd services/complaint-service
+  python3 main.py
+
+  # Terminal 3: Orchestrator
+  cd /home/santiago/projects/RoadVision1
+  source ml-pipeline/venv/bin/activate
+  cd services/orchestrator
+  python3 main.py
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  STEP 4: TEST THE SERVICES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Once services are running, open a NEW terminal and run:
+
+  cd /home/santiago/projects/RoadVision1
+
+--- Health checks ---
+
+  curl http://localhost:8001/v1/health
+  curl http://localhost:8002/v1/health
+  curl http://localhost:8000/v1/health
+
+--- Test image detection only (inference service) ---
+
+  curl -X POST http://localhost:8001/v1/detections/image \
+    -F "file=@ml-pipeline/output_detection.jpg"
+
+--- Test full pipeline (detect + auto-file complaint) ---
+
+  curl -X POST http://localhost:8000/v1/process/image \
+    -F "file=@ml-pipeline/output_detection.jpg" \
+    -F "latitude=28.6139" \
+    -F "longitude=77.209"
+
+--- Test video detection ---
+
+  curl -X POST http://localhost:8001/v1/detections/video \
+    -F "file=@ml-pipeline/road3.mp4" \
+    -F "sample_every_n=10"
+
+--- Check complaint status (after filing) ---
+
+  curl http://localhost:8002/v1/complaints/MOCK-XXXXXXXX/status
+
+  (Replace MOCK-XXXXXXXX with the external_id from the filing response)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SERVICE PORTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Service             Port    URL
+  ─────────────────   ─────   ──────────────────────
+  Orchestrator        8000    http://localhost:8000
+  Inference Service   8001    http://localhost:8001
+  Complaint Service   8002    http://localhost:8002
+  Node.js Backend     5000    http://localhost:5000
+  React Frontend      5173    http://localhost:5173
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  API ENDPOINTS REFERENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Orchestrator (:8000)
+  ────────────────────
+  POST /v1/process/image     Full pipeline: detect + file complaint
+  POST /v1/process/video     Full pipeline for video
+  GET  /v1/health            Aggregated health
+
+  Inference Service (:8001)
+  ─────────────────────────
+  POST /v1/detections/image  Detect potholes in image
+  POST /v1/detections/video  Detect potholes in video
+  GET  /v1/health            Model health + metadata
+
+  Complaint Service (:8002)
+  ─────────────────────────
+  POST /v1/complaints/file        File a new complaint
+  GET  /v1/complaints/{id}/status  Check complaint status
+  GET  /v1/health                  Adapter health
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  DATA FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Image/Video Upload
+       │
+       ▼
+  Orchestrator (:8000)
+       │
+       ├──► Inference Service (:8001)
+       │         │
+       │         ├─ Load YOLOv8 model
+       │         ├─ Run detection
+       │         ├─ Score severity
+       │         ├─ Extract GPS from EXIF
+       │         ├─ Save annotated image
+       │         └─ Return detection JSON
+       │
+       ├──► If potholes found:
+       │         │
+       │         └──► Complaint Service (:8002)
+       │                   │
+       │                   ├─ Select adapter (mock/pgportal/human)
+       │                   ├─ File complaint with retry
+       │                   └─ Return complaint ID
+       │
+       └──► Return combined results
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ENVIRONMENT VARIABLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  See .env.sample in the project root for all variables.
+  The most important ones:
+
+  MODEL_PATH              Path to YOLOv8 weights (best.pt)
+  CONFIDENCE_THRESHOLD    Min confidence for detection (default: 0.25)
+  COMPLAINT_ADAPTER       mock | pgportal | human (default: mock)
+  STORAGE_DIR             Where annotated images are saved
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Q: "python3 -m venv failed"
+  A: Run: sudo apt install python3.12-venv
+
+  Q: "No module named ultralytics"
+  A: Run: pip install ultralytics
+
+  Q: "Model weights not found"
+  A: Check that runs/detect/train2/weights/best.pt exists.
+     Set MODEL_PATH env var to the correct path.
+
+  Q: "Port already in use"
+  A: Kill existing processes:
+     lsof -ti:8001 | xargs kill -9
+     lsof -ti:8002 | xargs kill -9
+     lsof -ti:8000 | xargs kill -9
+
+  Q: "Connection refused on orchestrator"
+  A: Make sure inference + complaint services are running first.
+     The orchestrator depends on both being available.
+
+  Q: Services crash on start
+  A: Run each service individually (OPTION B above) to see the error.

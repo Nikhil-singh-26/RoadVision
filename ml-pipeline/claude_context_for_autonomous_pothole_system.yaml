@@ -1,0 +1,283 @@
+project_overview:
+  short_title: Autonomous Pothole Intelligence
+  details: 'Build end-to-end system that detects potholes from images/video, geolocates
+    and classifies severity, files grievances via government portals, and verifies
+    resolution automatically. See problem statement reference: fileciteturn0file0'
+  priority: high
+  owner: claude-agent
+  notes: Use configuration-driven design, no hardcoded secrets.
+constraints_and_assumptions:
+  short_title: Constraints
+  details: No hardcoded API keys/secrets. System must be modular and deployable as
+    containers. Use config files and environment variables. Support image and video
+    inputs. Use currently trained YOLOv8 model (50 epochs) located under ml-pipeline/runs.
+    Assume frontend (client/) and server/ folders exist but should not be modified
+    directly without coordination.
+  priority: high
+  owner: claude-agent
+  notes: Respect 'do not touch' areas noted by user.
+repo_structure:
+  short_title: Where code lives
+  details: Client (frontend) files in client/ — preserve. Backend placeholder in server/
+    — do not modify. ML code in ml-pipeline/ (model_api.py, detect_potholes.py). Provide
+    new subservices under services/ or infra/ to avoid touching those folders.
+  priority: medium
+  owner: claude-agent
+  notes: Create new microservices in services/ or infra/ directories.
+ml_model:
+  short_title: Model details
+  details: 'YOLOv8-based model. Path example: ml-pipeline/runs/detect/train2/weights/best.pt.
+    Provide inference wrapper that can load this model dynamically via configurable
+    path. Expose options for conf/IoU/size. Save model metadata (classes, input size,
+    confidence thresholds).'
+  priority: high
+  owner: claude-agent
+  notes: Model should be loaded once per worker; use thread-safe handling.
+inference_api:
+  short_title: Inference API spec
+  details: 'Create a RESTful service (FastAPI recommended) with OpenAPI spec and endpoints:
+    POST /v1/detections/image - accepts multipart/form-data image, POST /v1/detections/video
+    - accepts video or video URL, POST /v1/detections/stream - optional for RTSP,
+    GET /v1/detections/{detection_id}, GET /v1/health. Responses include detection_id,
+    timestamp, list of bounding boxes (x1,y1,x2,y2), class, confidence, severity_score,
+    geolocation (if present), annotated_image_url, model_version.'
+  priority: high
+  owner: claude-agent
+  notes: Return JSON and store results in DB.
+input_output_formats:
+  short_title: I/O formats
+  details: 'Input: images (jpg/png/webp), short videos (mp4/avi). Accept base64 and
+    file uploads. Output: JSON with standardized schema: detection_id, created_at
+    (ISO8601), source_uri, geo{lat,lon,accuracy}, bbox_list, severity:int (0-100),
+    confidence_avg, annotated_image_uri, model_version.'
+  priority: high
+  owner: claude-agent
+  notes: Include schema definitions in OpenAPI.
+geolocation:
+  short_title: Geolocation extraction
+  details: 'Prefer GPS EXIF for images (mobile/drones). For dashcam video without
+    GPS, allow optional sidecar metadata (timestamp + telemetry). Implement geohash
+    indexing and location snapping to nearest road via OpenStreetMap Nominatim or
+    a configurable map-tiling service. Provide fallback: allow manual lat/lon in POST.'
+  priority: high
+  owner: claude-agent
+  notes: Environment-configurable use of external geolocation services.
+severity_scoring:
+  short_title: Severity scoring algorithm
+  details: 'Combine: detection bbox size relative to image, depth/area heuristics
+    (if stereo or estimated), confidence, contextual road type (if available). Map
+    to severity categories: low/medium/high and numeric 0-100. Make parameters tunable
+    via config file.'
+  priority: high
+  owner: claude-agent
+  notes: Provide unit tests for scoring.
+duplicate_and_match:
+  short_title: Duplicate detection / loop closure
+  details: When new detection occurs, compute geohash (configurable precision), and
+    perform spatial-temporal matching to existing complaints. If within radius (configurable
+    meters) and time window, treat as same pothole. Use image hashing (pHash) + IoU
+    of bounding boxes as secondary check. Store persistent pothole_id to track lifecycle.
+  priority: high
+  owner: claude-agent
+  notes: Make matching thresholds configurable.
+grievance_portal_integration:
+  short_title: Automated complaint filing
+  details: 'Provide an adapter layer for grievance portals (PG Portal or state portals).
+    Implement adapter interface: authenticate(), create_complaint(pothole_record),
+    query_status(complaint_id). Implement one mock adapter and one sample adapter
+    using configurable credentials. NEVER hardcode credentials; use secrets manager
+    or env vars.'
+  priority: high
+  owner: claude-agent
+  notes: Adapters must retry with exponential backoff and log responses. Record external
+    complaint IDs in DB.
+loop_verification:
+  short_title: Verification & re-escalation
+  details: Periodically re-run detection for unresolved complaints (scheduled job).
+    If post-repair detection still finds the pothole above severity threshold, escalate
+    by re-filing or raising to higher authority. Record state transitions (detected->complaint_filed->in_progress->resolved->reopened).
+  priority: high
+  owner: claude-agent
+  notes: Scheduler configurable (cron/rrule).
+database_schema:
+  short_title: DB schema (relational)
+  details: 'Tables: potholes (pothole_id, geohash, lat, lon, created_at, last_seen_at,
+    severity, status), detections (detection_id, pothole_id, source_uri, timestamp,
+    bbox_json, confidence, annotated_uri), complaints (complaint_id, pothole_id, external_id,
+    portal_name, filed_at, status, last_update), users (user_id, role, contact), audits/events
+    (event_id, entity_type, entity_id, event_type, data, created_at). Use migrations
+    (Alembic).'
+  priority: high
+  owner: claude-agent
+  notes: Provide sample SQL for PostgreSQL with PostGIS extension recommended.
+storage:
+  short_title: File storage
+  details: 'Store annotated images and small video clips in object storage (S3-compatible).
+    Use consistent naming: {env}/detections/{YYYY}/{MM}/{uuid}.jpg. Do not store large
+    raw videos in DB. Provide signed URLs for downloads. Support local filesystem
+    for dev mode.'
+  priority: medium
+  owner: claude-agent
+  notes: Keep storage backend pluggable.
+scalability_and_architecture:
+  short_title: Architecture guidance
+  details: 'Design as microservices: inference service(s) (autoscalable), api-gateway,
+    worker queue (Redis/RabbitMQ/SQS) for heavy tasks (video processing, complaint
+    filing), scheduler service, adapter services for portals, web dashboard service.
+    Use Docker + Kubernetes for production. Provide docker-compose for local dev.'
+  priority: high
+  owner: claude-agent
+  notes: Prefer stateless services; state in DB and object store.
+deployment:
+  short_title: Deployment artifacts
+  details: Provide Dockerfiles for every service, docker-compose.yml for dev, Kubernetes
+    manifests or Helm chart for prod, Makefile for common tasks. CI pipeline (GitHub
+    Actions) to build images, run tests, and push to registry. Include health checks
+    and readiness/liveness probes.
+  priority: high
+  owner: claude-agent
+  notes: Document required environment variables and secrets.
+observability:
+  short_title: Logging & monitoring
+  details: Structured JSON logs, correlation ids (request_id/detection_id). Export
+    metrics (Prometheus), traces (Jaeger), and set up alerting for failures (high
+    error rate, queue backlog). Include log retention policy.
+  priority: medium
+  owner: claude-agent
+  notes: Provide example Grafana dashboards.
+security_and_privacy:
+  short_title: Security requirements
+  details: Use HTTPS for all endpoints, validate inputs, sanitize file names, scan
+    uploads for malicious content, least-privilege IAM roles for storage, encrypt
+    sensitive data at rest, do not log PII. Use OAuth2 or API keys for service-to-service
+    auth. Provide RBAC for web UI users.
+  priority: high
+  owner: claude-agent
+  notes: Offer recommendations for secret storage (Vault or cloud secret manager).
+testing:
+  short_title: Testing strategy
+  details: Unit tests for each module, integration tests for API and DB, end-to-end
+    tests for detection->complaint->verification flow using test adapters, model inference
+    regression tests using saved test images and expected outputs. Provide test dataset
+    and fixtures.
+  priority: high
+  owner: claude-agent
+  notes: Add coverage thresholds to CI.
+acceptance_criteria:
+  short_title: Success metrics
+  details: 'System must: detect potholes with configurable confidence, file a complaint
+    successfully via adapter, persist complaint external id, re-verify after configured
+    window, and escalate if unresolved. Provide performance targets: average inference
+    latency < 500ms for image (single GPU), ability to process X images/hour (specify
+    in config).'
+  priority: high
+  owner: claude-agent
+  notes: Define X in env/config based on infra.
+privacy_and_compliance:
+  short_title: Legal & privacy
+  details: Keep user personal data minimal. When interacting with government portals,
+    follow their API usage rules and data retention policies. Provide data deletion
+    endpoints for GDPR-like compliance if applicable.
+  priority: medium
+  owner: claude-agent
+  notes: Log consent provenance if necessary.
+ux_and_frontend_contract:
+  short_title: Frontend contract
+  details: 'Frontend will call API endpoints for uploads and listing. Provide OpenAPI
+    client generation (TypeScript). API responses must include stable keys: detection_id,
+    annotated_image_url, status, severity, coordinates. Provide sample UI components
+    and JSON fixtures for integration.'
+  priority: medium
+  owner: claude-agent
+  notes: Do NOT modify existing client/ folder; add generated client code in services/frontend-client/
+    if needed.
+sprint_plan:
+  short_title: Implementation roadmap (6 sprints)
+  details: 'Sprint 1: scaffold services, FastAPI inference service, load model, image
+    endpoint. Sprint 2: DB schema + storage adapter + persistence of detections. Sprint
+    3: complaint adapter interface + mock adapter + filing flow. Sprint 4: loop verification
+    scheduler + duplicate detection. Sprint 5: frontend contract + OpenAPI client
+    + sample dashboard. Sprint 6: tests, CI/CD, docker-compose and docs. Each sprint
+    produce deliverables and acceptance tests.'
+  priority: high
+  owner: claude-agent
+  notes: Deliver PRs per sprint.
+developer_onboarding:
+  short_title: Onboarding doc
+  details: Provide README.md at repo root describing env vars, run steps, dev vs prod
+    config, how to run tests, how to add adapters, where model weights live, and maintenance
+    tasks. Provide example .env.sample and migration steps.
+  priority: high
+  owner: claude-agent
+  notes: Include example commands to run inference and file complaints.
+config_and_secrets:
+  short_title: Configuration
+  details: 'All secrets in ENV or secret manager. Use 12-factor app config. Provide
+    config schema (YAML/JSON) with keys: MODEL_PATH, STORAGE_URL, DB_URL, QUEUE_URL,
+    PORTAL_API_URL, PORTAL_API_CLIENT_ID, PORTAL_API_SECRET (do not provide real values).'
+  priority: high
+  owner: claude-agent
+  notes: Document required scopes for portal APIs.
+performance_and_resource:
+  short_title: Resource sizing
+  details: Inference workers should be GPU-backed for production; provide CPU fallback
+    for dev. Recommend 1 GPU per N worker replicas. Provide memory and CPU requests
+    in k8s manifests and startup tuning for batch video processing.
+  priority: medium
+  owner: claude-agent
+  notes: Allow autoscaling based on queue length.
+data_management:
+  short_title: Datasets & labeling
+  details: Provide directories for labelled images, versioned datasets, and a process
+    for retraining. Store training metadata (hyperparams, dataset version) alongside
+    weights. Provide script to export annotated detections to CSV for audits.
+  priority: medium
+  owner: claude-agent
+  notes: Plan for active learning loop.
+ci_cd:
+  short_title: CI/CD requirements
+  details: 'Provide GitHub Actions workflows: build & test, lint, build docker images,
+    push to registry, and deploy to staging. Run model inference smoke tests in CI
+    using a small sample image set.'
+  priority: medium
+  owner: claude-agent
+  notes: Protect deployment secrets; require PR reviews.
+deliverable_format:
+  short_title: What to deliver to user
+  details: Code for microservices, Dockerfiles, docker-compose, k8s manifests/helm
+    chart, migration scripts, tests, README, sample environment files, OpenAPI specs,
+    sample adapters, and scripted demo to run locally. Provide minimal infra as IaC
+    (terraform) optional.
+  priority: high
+  owner: claude-agent
+  notes: Include a runnable local demo that uses local filesystem and sqlite for quick
+    evaluation.
+developer_prompts_for_claUDE:
+  short_title: How Claude should use this CSV
+  details: Claude should treat each CSV row as explicit instructions. For each section
+    create implementation tasks, generate code, tests, Dockerfiles, and docs. Avoid
+    hardcoded secrets; use env/config placeholders. Produce PR-ready files and commit
+    messages per sprint. Validate each deliverable with unit/integration tests and
+    provide run commands.
+  priority: high
+  owner: claude-agent
+  notes: Claude should ask for missing artifacts only if strictly necessary.
+notes_and_limitations:
+  short_title: Caveats
+  details: User's frontend and server folders must remain untouched. The provided
+    YOLO model may need conversion for optimized serving (ONNX/TensorRT) — make this
+    optional. Some government portals may require human registration or CAPTCHA; provide
+    mock adapters and human-in-the-loop fallback.
+  priority: high
+  owner: claude-agent
+  notes: Document gaps requiring human credentials.
+final_instruction:
+  short_title: Next actions for Claude
+  details: '1) Scaffold services and CI. 2) Implement inference service and DB persistence.
+    3) Implement mock complaint adapter and one real adapter if API specs are available
+    (use config). 4) Implement scheduler for verification and re-escalation. 5) Deliver
+    docker-compose demo and docs. 6) Provide comprehensive tests and OpenAPI clients.
+    Keep everything configurable and secret-free. '
+  priority: high
+  owner: claude-agent
+  notes: Produce incremental PRs and a final deployment guide.
