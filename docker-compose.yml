@@ -1,0 +1,108 @@
+# ─────────────────────────────────────────────────
+# RoadVision — Local Development Docker Compose
+# ─────────────────────────────────────────────────
+# Usage:
+#   docker-compose up --build
+#   Then send requests to http://localhost:8000/v1/process/image
+# ─────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+
+  # ── MongoDB ─────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: roadvision-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Inference Service (FastAPI + YOLOv8) ────
+  inference-service:
+    build:
+      context: ./services/inference-service
+      dockerfile: Dockerfile
+    container_name: roadvision-inference
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./runs:/models_source:ro
+      - ./storage:/app/storage
+    environment:
+      - MODEL_PATH=/models_source/detect/train2/weights/best.pt
+      - STORAGE_DIR=/app/storage/detections
+      - INFERENCE_PORT=8001
+      - CONFIDENCE_THRESHOLD=0.25
+      - IOU_THRESHOLD=0.45
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ── Complaint Service ───────────────────────
+  complaint-service:
+    build:
+      context: ./services/complaint-service
+      dockerfile: Dockerfile
+    container_name: roadvision-complaint
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./pending-complaints:/app/pending-complaints
+    environment:
+      - COMPLAINT_ADAPTER=mock
+      - COMPLAINT_PORT=8002
+      - HUMAN_PENDING_DIR=/app/pending-complaints
+      # For pgportal adapter (uncomment and fill):
+      # - PGPORTAL_USERNAME=your_username
+      # - PGPORTAL_PASSWORD=your_password
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ── Orchestrator ────────────────────────────
+  orchestrator:
+    build:
+      context: ./services/orchestrator
+      dockerfile: Dockerfile
+    container_name: roadvision-orchestrator
+    ports:
+      - "8000:8000"
+    environment:
+      - INFERENCE_SERVICE_URL=http://inference-service:8001
+      - COMPLAINT_SERVICE_URL=http://complaint-service:8002
+      - ORCHESTRATOR_PORT=8000
+    depends_on:
+      - inference-service
+      - complaint-service
+
+  # ── Existing Node.js Server ─────────────────
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: roadvision-server
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongo:27017/pothole_detection
+      - JWT_SECRET=${JWT_SECRET:-supersecretjwtkey_replace_in_prod}
+      - CLIENT_URL=http://localhost:5173
+      - NODE_ENV=development
+    depends_on:
+      mongo:
+        condition: service_healthy
+    # NOTE: server/ does not have a Dockerfile yet.
+    # For now you can run it with `npm run dev` in server/ manually.
+    profiles:
+      - with-server
+
+volumes:
+  mongo_data:
